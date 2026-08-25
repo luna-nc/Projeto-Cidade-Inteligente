@@ -1,6 +1,10 @@
 #include <iostream>
 using namespace std;
 
+char *tipo[] = {"Buraco","Iluminação","Violencia", "Vandalismo"}, 
+	 *gravidade[] = {"Leve","Médio","Grave","Gravéssimo"}, 
+	 *status[] = {"Análise","Andamento","Execução","Solucionado"};
+
 struct Processo {
 	char norte[50], sul[50], oeste[50], leste[50], bairro[50]; // Nome das ruas
     struct {
@@ -18,7 +22,8 @@ struct Processo {
 void buscar(Processo c[][50], int i){
     int resposta;
     do{
-        cout<<"\t--- Menu ---\n[1] Prioridades\n[2] Regiao\n[3] Data\n[0] Sair\nOpcao: ";
+    	system("cls");
+        cout<<"\t--- Menu ---\n[1] Prioridades\n[2] Região\n[3] Data\n[0] Sair\nOpção: ";
         cin>>resposta;
         switch(resposta){
             case 1:
@@ -27,10 +32,10 @@ void buscar(Processo c[][50], int i){
                 break;
             case 3:
                 break;
-            default:
-                cout<<"Opcao invalida!";
         }
-    }while(resposta!=0 && resposta<4);
+        cout<<"Opção inválida!\nDigite novamente\n\n";
+        system("pause");
+    }while(resposta!=0 && resposta>4);
 }
 
 void alterarStatus(Processo c[][50], int i){
@@ -76,7 +81,7 @@ void subMenu(Processo c[][50], int op, int i){
 		} else {
 			cout<<"Abrir requerimento";
 		}
-		cout<<"\n[0] Sair\nOpcao: ";
+		cout<<"\n[0] Sair\nOpção: ";
         cin>>resposta;
         switch(resposta){
             case 1:
@@ -86,28 +91,34 @@ void subMenu(Processo c[][50], int op, int i){
                 if(op==1){ alterarStatus(c, i); } else { abrirRequerimento(c, i, j); }
                 break;
         }
+        cout<<"Opção inválida!\nDigite novamente\n\n";
+        system("pause");
         i++;
-    }while(op!=0 && op>2);
+    }while(resposta!=0 && resposta>2);
 }
 
 void menu(Processo c[][50]){
     int op=0, i=0;
     do{
-        cout<<"\t--- Menu ---\n[1] Administrativo\n[2] Cidadao\n[0] Sair\nOpcao: ";
+        cout<<"\t--- Menu ---\n[1] Administrativo\n[2] Cidadão\n[0] Sair\nOpção: ";
         cin>>op;
         switch(op){
         	case 1:
         		case 2:
         			subMenu(c, op, i);
-        		break;    		
+        		break;
 		}
-    }while(op!=0 && op>2);
+		cout<<"Opção inválida!\nDigite novamente\n\n";
+        system("pause");
+    	system("cls");
+	}while(op!=0 && op>2);
     system("cls");
     cout<<"\n\t--- Volte sempre!! ---\n\n";
     system("pause");
 }
 
 int main(){
+	setlocale(LC_ALL,"Portuguese");
     menu(cidade);
     return 0;
 }
