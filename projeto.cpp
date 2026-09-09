@@ -24,6 +24,16 @@ struct Processo {
 }cidade[50][50];
 
 
+void ordenar(Processo c[][50], int tam){
+	for(int i=1; i<tam;i++){
+		int j = i;
+		while(j>0 && c[j-1]>c[j]){
+			swap(c[j-1],c[j]);
+			j--;
+		}
+	}
+}
+
 void buscar(Processo c[][50], int index){
     int resposta;
     do{
