@@ -1,139 +1,433 @@
-/*
-	Necessário fazer um filtro sobre as opções (Qual a região?) - função buscar;
-	Fazer a ordenação por data de todos.
-*/
 #include <iostream>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 2
 using namespace std;
+// Matrizes auxiliar para exibicao de texto
+char tipo_str[4][12]  = {"Buraco", "Iluminacao", "Violencia", "Vandalismo"}; 
+char prio_str[4][12]  = {"Leve", "Medio", "Grave", "Gravissimo"};
+char status_str[4][12] = {"Analise", "Andamento", "Execucao", "Solucionado"};
 
-char tipo[4][12] = {"Buraco","Iluminacao","Violencia","Vandalismo"}; 
-char gravidade[4][12] = {"Leve","Medio","Grave","Gravissimo"};
-char status[4][12] = {"Analise","Andamento","Execucao","Solucionado"};
+typedef struct {
+    char rua[50];
+    int num;
+} Localizacao;
 
-struct Processo {
-	char norte[50], sul[50], oeste[50], leste[50], bairro[50]; // Nome das ruas
-    struct {
-    	int id, tipo, gravidade, status;
-	    /*
-			Tipo: 1 - Buraco; 2 - Iluminacao; 3 - Violencia; 4 - Vandalismo
-			Gravidade: 1 - Leve; 2 - Medio; 3 - Grave; 4 - Gravissimo
-			Status: 1 - Analise; 2 - Andamento; 3 - Execucao; 4 - Solucionado
-		*/
-    	string data;
-    	char descricao[];
-	}evento[10];
-}cidade[50][50];
+typedef struct Evento {
+    int id, tipo, prioridade, status;
+    char descricao[100];
+    Localizacao endereco;
+    struct Evento *prox; // No da Lista Encadeada
+} Evento;
 
+typedef struct { // Header da Lista Encadeada
+    Evento *Inicio;
+    int Total;
+} ListaEventos;
 
-void ordenar(Processo c[][50], int tam){
-	for(int i=1; i<tam;i++){
-		int j = i;
-		while(j>0 && c[j-1]>c[j]){
-			swap(c[j-1],c[j]);
-			j--;
-		}
-	}
+typedef struct {
+    char Rnorte[50], Rsul[50], Roeste[50], Rleste[50];
+    ListaEventos eventos; // Lista dinamica de eventos da regiao
+} Regiao;
+
+void inicializar_lista(ListaEventos *L) {
+    L->Inicio = NULL;
+    L->Total = 0;
 }
 
-void buscar(Processo c[][50], int index){
-    int resposta;
-    do{
-    	system("cls");
-        cout<<"\t--- Menu ---\n[1] Prioridades\n[2] Regiao\n[3] Data\n[0] Sair\nOpcao: ";
-        cin>>resposta;
-        switch(resposta){
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
+bool lista_vazia(ListaEventos *L) {
+    return (L->Inicio == NULL);
+}
+
+Evento* criar_evento(int id, int tipo, int prioridade, const char* desc, const char* rua, int num) {
+    Evento *novo = (Evento*) malloc(sizeof(Evento));
+    if (novo != NULL) {
+        novo->id = id;
+        novo->tipo = tipo;
+        novo->prioridade = prioridade;
+        novo->status = 0; // Inicializa em "Analise"
+        strcpy(novo->descricao, desc);
+        strcpy(novo->endereco.rua, rua);
+        novo->endereco.num = num;
+        novo->prox = NULL;
+    }
+    return novo;
+}
+
+void inserir_evento(ListaEventos *L, int id, int tipo, int prioridade, const char* desc, const char* rua, int num) {
+    Evento *novo = criar_evento(id, tipo, prioridade, desc, rua, num);
+    if (novo != NULL) {
+        novo->prox = L->Inicio; // Insere no inicio
+        L->Inicio = novo;
+        ++L->Total;
+        cout << "\n[SUCESSO] Processo " << id << " registrado com sucesso!\n";
+    } else {
+        cout << "\n[ERRO] Falha ao alocar memoria.\n";
+    }
+}
+
+Evento* buscar_evento(ListaEventos *L, int id) {
+    Evento *ptO, *Pos=NULL;
+    for (ptO = L->Inicio; ptO != NULL; ptO = ptO->prox) {
+        if (ptO->id == id) {
+            Pos = ptO;
         }
-        cout<<"Opcao invalida!\nDigite novamente\n\n";
-        system("pause");
-    }while(resposta!=0 && resposta>4);
+    }
+    return Pos;
 }
 
-void alterarStatus(Processo c[][50], int index){
-    int id, novoStatus;
-    cout<<"Digite o numero do processo: ";
-    cin>>id;
-    do{
-        cout<<"Deseja mudar o status do processo "<<id<<" para: ";
-        cin>>novoStatus;
-    }while(novoStatus>0 && novoStatus>5);
-    c[index][50].evento[id].status=novoStatus;
-}
-
-void abrirRequerimento(Processo c[][50], int index, int index2){
-	system("cls");
-    cout<<"--- Preencha os dados ---\nRua norte: ";
-    gets(c[index][50].norte);
-    cout<<"\nRua sul: ";
-    gets(c[index][50].sul);
-    cout<<"\nRua oeste: ";
-    gets(c[index][50].oeste);
-    cout<<"\nRua leste: ";
-    gets(c[index][50].leste);
-    system("cls");
-    cout<<"\n--- Sobre o evento ---\n*para o preenchimento do 'tipo' coloque os numero referente:\t[1] Buraco;\t[2] Iluminacao;\t[3] Violencia;\t[4] Vandalismo***\nTipo:";
-    cin>>c[index][50].evento[index2].tipo;
-    cout<<"\nData da solicitacao: ";
-    cin>>c[index][50].evento[index2].data;
-    cout<<"\nDescricao: ";
-    gets(c[index][50].evento[index2].descricao);
-    c[index][50].evento[index2].status=1;
-    // p.evento[].gravidade= ;
-    j++;
-}
-
-void subMenu(Processo c[][50], int op, int index){
-    int resposta, index2=0;
-    do{
-    	system("cls");
-        cout<<"\t--- Menu ---\n[1] Buscar processos\n[2] ";
-		if(op==1){
-			cout<<"Alterar status";
-		} else {
-			cout<<"Abrir requerimento";
-		}
-		cout<<"\n[0] Sair\nOpcao: ";
-        cin>>resposta;
-        switch(resposta){
-            case 1:
-				buscar(c, index);
-                break;
-            case 2:
-                if(op==1){ alterarStatus(c, index); } else { abrirRequerimento(c, index, index2); }
-                break;
+void ordenar_por_prioridade(Evento *vetor[], int tam) {
+    int i, j;
+    Evento *pivo;
+    for (i = 1; i < tam; i++) {
+        pivo = vetor[i];
+        j = i - 1;
+        // Ordena por prioridade maior -> menor
+        while (j >= 0 && vetor[j]->prioridade < pivo->prioridade) {
+            vetor[j + 1] = vetor[j];
+            j = j - 1;
         }
-        cout<<"Opcao invalida!\nDigite novamente\n\n";
-        system("pause");
-        i++;
-    }while(resposta!=0 && resposta>2);
+        vetor[j + 1] = pivo;
+    }
 }
 
-void menu(Processo c[][50]){
-    int op=0, index=0;
-    do{
-        cout<<"\t--- Menu ---\n[1] Administrativo\n[2] Cidadao\n[0] Sair\nOpcao: ";
-        cin>>op;
-        switch(op){
-        	case 1:
-        		case 2:
-        			subMenu(c, op, index);
-        		break;
-		}
-		cout<<"Opcao invalida!\nDigite novamente\n\n";
-        system("pause");
-    	system("cls");
-	}while(op!=0 && op>2);
+void buscar_eventos_tipo(Regiao c[MAX][MAX]) {
+    int tipoDesejado;
     system("cls");
-    cout<<"\n\t--- Volte sempre!! ---\n\n";
+    cout << "--- Buscar Eventos por Tipo ---\nTipo ([0] Buraco, [1] Iluminacao, [2] Violencia, [3] Vandalismo): ";
+    cin >> tipoDesejado;
+    Evento *aux[100]; // Vetor auxiliar de ponteiros
+    int qtd = 0;
+    // Percorre todas as regioes buscando os eventos do tipo especificado
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            Evento *ptO = c[i][j].eventos.Inicio;
+            while (ptO != NULL) {
+                if (ptO->tipo == tipoDesejado && qtd < 100) {
+                    aux[qtd] = ptO;
+                    qtd++;
+                }
+                ptO = ptO->prox;
+            }
+        }
+    }
+    if (qtd == 0) {
+        cout << "\nNenhum evento do tipo selecionado foi encontrado.\n";
+	} else {// Ordena os resultados antes da exibicao
+	    ordenar_por_prioridade(aux, qtd);
+	    cout << "\n=== Eventos do Tipo: " << tipo_str[tipoDesejado] << " (Ordenados por Prioridade) ===\n";
+	    for (int k = 0; k < qtd; k++) {
+	        cout << "\nID: " << aux[k]->id;
+	        cout << " | Prioridade: " << prio_str[aux[k]->prioridade];
+	        cout << " | Status: " << status_str[aux[k]->status];
+	        cout << "\nEndereco: " << aux[k]->endereco.rua << ", N: " << aux[k]->endereco.num;
+	        cout << "\nDescricao: " << aux[k]->descricao;
+	        cout << "\n----------------------------------------\n";
+	    }
+    }
     system("pause");
 }
 
-int main(){
-	setlocale(LC_ALL,"Portuguese");
+void buscar_eventos_status(Regiao c[MAX][MAX]) {
+    int statusDesejado;
+    system("cls");
+    cout << "--- Buscar Eventos por Status ---\nStatus ([0] Analise, [1] Andamento, [2] Execucao, [3] Solucionado): ";
+    cin >> statusDesejado;
+    Evento *aux[100];
+    int qtd = 0;
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            Evento *ptO = c[i][j].eventos.Inicio;
+            while (ptO != NULL) {
+                if (ptO->status == statusDesejado && qtd < 100) {
+                    aux[qtd] = ptO;
+                    qtd++;
+                }
+                ptO = ptO->prox;
+            }
+        }
+    }
+    if (qtd == 0) {
+        cout << "\nNenhum evento com o status selecionado foi encontrado.\n";
+    } else {
+	    // Ordena os resultados antes da exibicao
+	    ordenar_por_prioridade(aux, qtd);
+	    cout << "\n=== Eventos com Status: " << status_str[statusDesejado] << " (Ordenados por Prioridade) ===\n";
+	    for (int k = 0; k < qtd; k++) {
+	        cout << "\nID: " << aux[k]->id;
+	        cout << " | Tipo: " << tipo_str[aux[k]->tipo];
+	        cout << " | Prioridade: " << prio_str[aux[k]->prioridade];
+	        cout << "\nEndereco: " << aux[k]->endereco.rua << ", N: " << aux[k]->endereco.num;
+	        cout << "\nDescricao: " << aux[k]->descricao;
+	        cout << "\n----------------------------------------\n";
+	    }
+	}
+	system("pause");
+}
+
+void remover_evento(ListaEventos *L, int id) {
+    if (!lista_vazia(L)) {
+    	Evento *ptO = L->Inicio;
+    	Evento *aux = NULL;
+	    // Remove na cabeca
+	    if (L->Inicio->id == id) {
+	        L->Inicio = L->Inicio->prox;
+	        free(ptO);
+	        --L->Total;
+	        cout << "\n[SUCESSO] Processo " << id << " removido!\n";
+	    } else {
+		    // Remove no meio ou fim
+		    while (ptO->prox != NULL && ptO->prox->id != id) {
+		        ptO = ptO->prox;
+		    }
+		    if (ptO->prox != NULL) {
+		        aux = ptO->prox;
+		        ptO->prox = aux->prox;
+		        free(aux);
+		        --L->Total;
+		        cout << "\n[SUCESSO] Processo " << id << " removido!\n";
+		    } else {
+		        cout << "\n[ERRO] Processo ID " << id << " nao encontrado nesta regiao.\n";
+		    }
+		}
+    }
+}
+
+void imprimir_eventos(ListaEventos *L) {
+    if (!lista_vazia(L)) {
+	    Evento *ptO;
+	    for (ptO = L->Inicio; ptO != NULL; ptO = ptO->prox) {
+	        cout << "\n----------------------------------------";
+	        cout << "\nID Processo: " << ptO->id;
+	        cout << "\nTipo: " << tipo_str[ptO->tipo];
+	        cout << "\nPrioridade: " << prio_str[ptO->prioridade];
+	        cout << "\nStatus: " << status_str[ptO->status];
+	        cout << "\nEndereco: " << ptO->endereco.rua << ", N: " << ptO->endereco.num;
+	        cout << "\nDescricao: " << ptO->descricao;
+	        cout << "\n----------------------------------------\n";
+	    }
+    }
+}
+
+void abrir_processo(Regiao c[MAX][MAX]) {
+    int i, j, id, tipo, prio, num;
+    char desc[100], rua[50];
+    system("cls");
+    cout << "--- Abrir Novo Processo ---\nInforme as coordenadas da regiao (0 a " << MAX-1 << "):\n";
+    cout << "Linha (i): "; 
+	cin >> i;
+    cout << "Coluna (j): "; 
+	cin >> j;
+    if (i < 0 || i >= MAX || j < 0 || j >= MAX) {
+        cout << "\n[ERRO] Regiao invalida!\n";
+    } else {
+	    cout << "\nID do Processo: "; 
+		cin >> id;
+	    cout << "Tipo ([0] Buraco, [1] Iluminacao, [2] Violencia, [3] Vandalismo): "; 
+		cin >> tipo;
+	    cout << "Prioridade ([0] Leve, [1] Medio, [2] Grave, [3] Gravissimo): "; 
+		cin >> prio;
+	    cin.ignore(); // Limpa o buffer
+	    cout << "Rua da ocorrencia: ";
+	    gets(rua);
+	    cout << "Numero: "; 
+		cin >> num;
+	    cin.ignore();
+	    cout << "Descricao breve: ";
+	    gets(desc);
+	    inserir_evento(&(c[i][j].eventos), id, tipo, prio, desc, rua, num);
+	}
+	system("pause");
+}
+
+void buscar_processo(Regiao c[MAX][MAX]) {
+    int id;
+    system("cls");
+    cout << "--- Buscar Processo por ID ---\nDigite o ID do processo: "; 
+	cin >> id;
+    bool achou = false;
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            Evento *e = buscar_evento(&(c[i][j].eventos), id);
+            if (e != NULL) {
+                cout << "\nProcesso encontrado na Regiao [" << i << "][" << j << "]:";
+                cout << "\nRua do evento: " << e->endereco.rua << ", " << e->endereco.num;
+                cout << "\nTipo: " << tipo_str[e->tipo] << " | Prioridade: " << prio_str[e->prioridade];
+                cout << "\nStatus: " << status_str[e->status];
+                cout << "\nDescricao: " << e->descricao << "\n";
+                achou = true;
+            }
+        }
+    }
+    if (!achou) {
+        cout << "\nProcesso com ID " << id << " nao foi encontrado em nenhuma regiao.\n";
+    }
+    system("pause");
+}
+
+void remover_processo(Regiao c[MAX][MAX]) {
+    int i, j, id;
+    system("cls");
+    cout << "--- Remover Processo ---\nInforme a Regiao onde o processo se encontra:\n";
+    cout << "Linha (i): "; 
+	cin >> i;
+    cout << "Coluna (j): "; 
+	cin >> j;
+    cout << "ID do processo a remover: "; 
+	cin >> id;
+    if (i >= 0 && i < MAX && j >= 0 && j < MAX) {
+        remover_evento(&(c[i][j].eventos), id);
+    } else {
+        cout << "\n[ERRO] Regiao invalida!\n";
+    }
+    system("pause");
+}
+
+void listar_por_regiao(Regiao c[MAX][MAX]) {
+    int i, j;
+    system("cls");
+    cout << "--- Listar Ocorrencias por Regiao ---\n";
+    cout << "Linha (i): "; 
+	cin >> i;
+    cout << "Coluna (j): "; 
+	cin >> j;
+    if (i >= 0 && i < MAX && j >= 0 && j < MAX) {
+        cout << "\n=== Regiao [" << i << "][" << j << "] ===";
+        cout << "\nLimites: N: " << c[i][j].Rnorte << " | S: " << c[i][j].Rsul 
+             << " | O: " << c[i][j].Roeste << " | L: " << c[i][j].Rleste;
+        cout << "\nTotal de Eventos: " << c[i][j].eventos.Total << "\n";
+        imprimir_eventos(&(c[i][j].eventos));
+    } else {
+        cout << "\n[ERRO] Regiao invalida!\n";
+    }
+    system("pause");
+}
+
+void preencher_cidade(Regiao c[MAX][MAX]) {
+    cout << "\t--- Preenchimento das Ruas Limite da Cidade ---\n";
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            inicializar_lista(&(c[i][j].eventos));
+            cout << "\nRegiao [" << i << "][" << j << "]:\nRua Norte: "; 
+			gets(c[i][j].Rnorte);
+            cout << "Rua Sul: ";   
+			gets(c[i][j].Rsul);
+            cout << "Rua Oeste: "; 
+			gets(c[i][j].Roeste);
+            cout << "Rua Leste: "; 
+			gets(c[i][j].Rleste);
+        }
+    }
+}
+
+void alterar_status(Regiao c[MAX][MAX]) {
+    int id, nvStatus;
+    bool achou = false;
+    system("cls");
+    cout << "--- Alterar Status do Processo ---\nDigite o ID do processo: ";
+    cin >> id;
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            Evento *ptO = buscar_evento(&(c[i][j].eventos), id);
+            if (ptO != NULL) {
+                achou = true;
+                cout << "Processo encontrado na Regiao [" << i << "][" << j << "]\n";
+                cout << "Status atual: " << status_str[ptO->status] << "\n";
+                do {
+                    cout << "Selecione o novo status ([0] Analise, [1] Andamento, [2] Execucao, [3] Solucionado): ";
+                    cin >> nvStatus;
+                    if (nvStatus < 0 || nvStatus > 3) {
+                        cout << "Opcao invalida! Tente novamente.\n";
+                    }
+                } while (nvStatus < 0 || nvStatus > 3);
+                ptO->status = nvStatus;
+                cout << "\n[SUCESSO] Status do processo " << id << " alterado para: " << status_str[nvStatus] << "\n";
+            }
+        }
+    }
+    if (!achou) {
+        cout << "\n[ERRO] Processo ID " << id << " nao encontrado em nenhuma regiao.\n";
+    }
+    system("pause");
+}
+
+void submenu(Regiao c[MAX][MAX], int categoria) {
+    int op = -1;
+    do {
+        system("cls");
+        cout << "\t--- Menu de Ocorrencias Urbana ---\n\n[1]";
+        if (categoria == 1) {
+            cout << " Alterar status do processo";
+        } else {
+            cout << " Abrir processo";
+        }
+        cout << "\n[2] Buscar processo por ID\n[3] Buscar eventos por tipo\n";
+        cout << "[4] Buscar eventos por Status\n[5] Remover processo\n";
+        cout << "[6] Listar processos de uma regiao\n[0] Voltar ao menu principal\nOpcao: ";
+        cin >> op;
+
+        switch (op) {
+            case 1:
+                if (categoria == 1) {
+                    alterar_status(c);
+                } else {
+                    abrir_processo(c);
+                }
+                break;
+            case 2:
+                buscar_processo(c);
+                break;
+            case 3:
+                buscar_eventos_tipo(c);
+                break;
+            case 4:
+                buscar_eventos_status(c);
+                break;
+            case 5:
+                remover_processo(c);
+                break;
+            case 6:
+                listar_por_regiao(c);
+                break;
+            case 0:
+                break;
+            default:
+                cout << "\nOpcao invalida!\n";
+                system("pause");
+                break;
+        }
+    } while (op != 0);
+}
+
+void menu(Regiao c[MAX][MAX]) {
+    int op = -1;
+    do {
+        system("cls");
+        cout << "\t--- Menu Principal ---\n\n[1] Administrativo\n";
+        cout << "[2] Cidadao\n[0] Sair\nOpcao: ";
+        cin >> op;
+        switch (op) {
+            case 1:
+	            case 2:
+	                submenu(c, op);
+	                break;
+            case 0:
+                system("cls");
+                cout << "\n\t--- Volte sempre!! ---\n\n";
+                system("pause");
+                break;
+            default:
+                cout << "\nOpcao invalida!\nDigite novamente.\n\n";
+                system("pause");
+                break;
+        }
+    } while (op != 0);
+}
+
+int main() {
+    setlocale(LC_ALL, "Portuguese");
+    Regiao cidade[MAX][MAX];
+    preencher_cidade(cidade);
     menu(cidade);
     return 0;
 }
