@@ -13,9 +13,9 @@ typedef struct {
     int num;
 } Localizacao;
 
-typedef struct Evento {
+typedef struct {
     int id, tipo, prioridade, status;
-    char descricao[100];
+    char descricao[];
     Localizacao endereco;
     struct Evento *prox; // No da Lista Encadeada
 } Evento;
@@ -356,7 +356,7 @@ void submenu(Regiao c[MAX][MAX], int categoria) {
     do {
         system("cls");
         cout << "\t--- Menu de Ocorrencias Urbana ---\n\n[1]";
-        if (categoria == 1) {
+        if (categoria) {
             cout << " Alterar status do processo";
         } else {
             cout << " Abrir processo";
@@ -368,7 +368,7 @@ void submenu(Regiao c[MAX][MAX], int categoria) {
 
         switch (op) {
             case 1:
-                if (categoria == 1) {
+                if (categoria) {
                     alterar_status(c);
                 } else {
                     abrir_processo(c);
