@@ -1,0 +1,7 @@
+Algoritmo que analiza os parênteses:
+	1 - Ler a expressão (enfileirar)
+		1.1 - Percorrer a expressao (caso não for vazia);
+			1.1.1 - Identificar os parênteses de abertura ('('): Caso tenha, chama empilhar;
+			1.1.2 - Identificar o fechamento dos parênteses (')'): Caso tenha, chama desempilhar.
+				1.1.2.1 - Se a pilha for vazia, gera erro (informa que a expressão é inválida), se não, desempilha;
+	2 - Verificar se o total (Pilha) é igual a 0, se for, passa reto. Caso contrário, informa que a expressão é inválida.
