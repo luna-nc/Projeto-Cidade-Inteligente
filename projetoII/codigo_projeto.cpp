@@ -118,27 +118,18 @@ void desempilhar(Pilha *P){
 
 int main(){
 	setlocale(LC_ALL, "Portuguese");
-	char exp;
 	Fila f;
 	Pilha p;
 	
 	ini_fila(&f);
 	ini_pilha(&p);
 	
+	char exp;
 	cout<<"Digite a expressão: ";
 	while(cin.get(exp) && exp != '\n'){
 		enfileirar(&f, exp);
 	}
 	
-	/*
-	enfileirar(&f, '5');
-	enfileirar(&f, '/');
-	enfileirar(&f, '(');
-	enfileirar(&f, '5');
-	enfileirar(&f, '*');
-	enfileirar(&f, '5');
-	enfileirar(&f, ')');
-	*/
 	
 	while(!vazia_fila(&f)){
 		if(f.inicio->expressao == '('){
